@@ -1,0 +1,19 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  create-clusters:
+    dir: ./cluster-setup
+    cmds:
+      - kind create cluster --name lab-cilium --config kind-config.yaml
+
+  install-cilium:
+    dir: ./cilium
+    cmds:
+      - cilium install --chart-directory ./install/kubernetes/cilium
+
+includes:
+  demo-cilium:
+    taskfile: ./demos/cilium/Taskfile.yml
+    dir: ./demos/cilium

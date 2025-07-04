@@ -1,0 +1,17 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  test-conn:
+    cmds:
+      - cilium connectivity test
+
+  deathstar-up:
+    cmds:
+      - kubectl create -f https://raw.githubusercontent.com/cilium/cilium/HEAD/examples/minikube/http-sw-app.yaml
+
+  deathstar-down:
+    cmds:
+      - kubectl delete -f https://raw.githubusercontent.com/cilium/cilium/HEAD/examples/minikube/http-sw-app.yaml
+      - kubectl delete cnp rule1
