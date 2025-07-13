@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-self
+  namespace: argocd
+spec:
+  destination:
+    name: in-cluster
+    namespace: argocd
+  project: default
+  source:
+    path: setup/argocd
+    repoURL: https://github.com/dgmorales/k8s-lab.git
+    targetRevision: HEAD
