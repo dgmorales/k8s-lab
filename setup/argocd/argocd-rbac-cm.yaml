@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+data:
+   policy.csv: |
+     p, github_actions, applications, get, default/*-testapp, allow
+     p, github_actions, applications, sync, default/*-testapp, allow
