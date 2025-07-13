@@ -1,8 +1,8 @@
 {
 	"conventionalCommits.scopes": [
-
 		"argocd",
 		"cilium",
-		"clusterapi"
+		"clusterapi",
+		"addons"
 	]
 }
