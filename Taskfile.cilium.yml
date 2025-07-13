@@ -1,0 +1,16 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  install:
+    cmds:
+      - cilium install --chart-directory ./install/kubernetes/cilium
+
+  install-ui:
+    cmds:
+      - cilium hubble enable --ui
+
+  port-forward:
+    cmds:
+      - kubectl port-forward svc/hubble-ui -n kube-system 8081:80

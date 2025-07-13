@@ -2,18 +2,55 @@
 
 version: '3'
 
-tasks:
-  create-clusters:
-    dir: ./cluster-setup
-    cmds:
-      - kind create cluster --name lab-cilium --config kind-config.yaml
+vars:
+  cluster_mgmt: lab-mgmt
+  cluster_dev: lab-dev-0
+  cluster_prod0: lab-prod-0
+  cluster_prod1: lab-prod-1
 
-  install-cilium:
-    dir: ./cilium
+tasks:
+  setup-local-tools:
     cmds:
-      - cilium install --chart-directory ./install/kubernetes/cilium
+      - echo install/update clusterctl
+      - echo install/update argocd cli
+      - echo install/update cilium cli?
+
+  setup-lab:
+    cmds:
+      - task: mgmt-create
+      - task: cilium:install
+      - task: cilium:install-ui
+      - task: argocd:install
+     # - task: clusterapi:init
+     # - task: clusterapi:create-clusters
+
+  mgmt-create:
+    dir: ./setup
+    cmds:
+      - kind create cluster --name {{.cluster_mgmt}} --config kind-config.yaml
+
+  destroy-clusters:
+    cmds:
+      - kind delete cluster --name {{.cluster_mgmt}}
+      - kind delete cluster --name {{.cluster_dev}}
+      - kind delete cluster --name {{.cluster_prod0}}
+      - kind delete cluster --name {{.cluster_prod1}}
+
+  port-forward:
+    deps:
+      - argocd:port-forward
+      - cilium:port-forward
 
 includes:
+  argocd:
+    taskfile: ./setup/argocd
+    dir: ./setup/argocd
+  cilium:
+    taskfile: ./Taskfile.cilium.yml
+    dir: ./setup/cilium
+  clusterapi:
+    taskfile: ./setup/clusterapi
+    dir: ./setup/clusterapi
   demo-cilium:
     taskfile: ./demos/cilium/Taskfile.yml
     dir: ./demos/cilium
