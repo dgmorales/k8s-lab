@@ -6,13 +6,19 @@ tasks:
   install:
     cmds:
       - kubectl config set-context kind-{{.cluster_mgmt}}
-      - kubectl create ns argocd
+      - cmd: kubectl create ns argocd
+        ignore_error: true
       - kubectl apply -k .
+      - task: get-password
 
   port-forward:
     cmds:
       - kubectl port-forward svc/argocd-server -n argocd 8080:443
 
   get-password:
+    vars:
+      ARGO_PASS:
+        sh: kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d
     cmds:
-      - kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d
+      - cmd: echo -e "\n===> ArgoCD initial admin password is {{.ARGO_PASS}}\n"
+        silent: true
