@@ -9,8 +9,8 @@ vars:
   cluster_prod1: lab-prod-1
 
 tasks:
-  setup-local-tools:
-    desc: Install/update local tools used by the tasks, on $HOME/bin by default. Run "task --summary setup-local-tools" for details.
+  setup-tools:
+    desc: Install/update local tools used by the tasks, on $HOME/bin by default. Run "task --summary setup-tools" for details.
     summary: |
       Install/update local tools used by the tasks, on $HOME/bin by default.
 
@@ -33,11 +33,11 @@ tasks:
   setup-lab:
     cmds:
       - task: mgmt-create
-      - task: cilium:install
-      - task: cilium:install-ui
+      # - task: cilium:install
+      # - task: cilium:install-ui
       - task: argocd:install
       - task: addons-init
-     # - task: clusterapi:init
+      - task: clusterapi:init
      # - task: clusterapi:create-clusters
 
   addons-init:
@@ -55,9 +55,9 @@ tasks:
       vars:
         - ARC_TOKEN
     cmds:
-      - kubectl create namespace actions-runner-system || true
-      - kubectl create secret generic controller-manager -n actions-runner-system --from-literal=github_token=${ARC_TOKEN}
-      - kubectl apply -f addons/argocd-apps/addons-manager.yaml
+      - kubectl --context kind-{{ .cluster_mgmt }} create namespace actions-runner-system || true
+      - kubectl --context kind-{{ .cluster_mgmt }} create secret generic controller-manager -n actions-runner-system --from-literal=github_token=${ARC_TOKEN}
+      - kubectl --context kind-{{ .cluster_mgmt }} apply -f addons/argocd-apps/addons-manager.yaml
 
   mgmt-create:
     dir: ./setup
@@ -81,7 +81,7 @@ includes:
     taskfile: ./addons/manifests/argocd
     dir: ./addons/manifests/argocd
   cilium:
-    taskfile: ./Taskfile.cilium.yml
+    taskfile: ./setup/Taskfile.cilium.yml
     dir: ./setup/cilium
   clusterapi:
     taskfile: ./setup/clusterapi

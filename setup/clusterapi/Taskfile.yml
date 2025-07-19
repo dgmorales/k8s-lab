@@ -1,0 +1,20 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+
+  init:
+    env:
+      CLUSTER_TOPOLOGY: true
+    cmds:
+      - clusterctl init --infrastructure docker --wait-providers
+
+  create-clusters:
+    cmds:
+    - kubectl --context kind-{{ .cluster_mgmt }} create ns {{ .cluster_dev }} || true
+    - kubectl --context kind-{{ .cluster_mgmt }} create ns {{ .cluster_prod0 }} || true
+    - kubectl --context kind-{{ .cluster_mgmt }} create ns {{ .cluster_prod1 }} || true
+    - echo clusterctl get kubeconfig {{ .cluster_dev }} > kubeconfigs/{{ .cluster_dev }}.kubeconfig
+    - echo clusterctl get kubeconfig {{ .cluster_prod0 }} > kubeconfigs/{{ .cluster_prod0 }}.kubeconfig
+    - echo clusterctl get kubeconfig {{ .cluster_prod1 }} > kubeconfigs/{{ .cluster_prod1 }}.kubeconfig
