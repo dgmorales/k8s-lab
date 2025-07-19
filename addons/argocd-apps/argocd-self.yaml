@@ -3,12 +3,14 @@ kind: Application
 metadata:
   name: argocd-self
   namespace: argocd
+  labels:
+    app-type: cluster-addon
 spec:
   destination:
     name: in-cluster
     namespace: argocd
   project: default
   source:
-    path: setup/argocd
+    path: addons/manifests/argocd
     repoURL: https://github.com/dgmorales/k8s-lab.git
     targetRevision: HEAD

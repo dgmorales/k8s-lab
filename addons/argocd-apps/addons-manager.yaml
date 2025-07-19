@@ -4,12 +4,14 @@ kind: Application
 metadata:
   name: addons-manager
   namespace: argocd
+  labels:
+    app-type: cluster-addon
 spec:
   project: default
   source:
     repoURL: https://github.com/dgmorales/k8s-lab.git
     targetRevision: HEAD
-    path: addons/manifests/apps
+    path: addons/argocd-apps
   destination:
     name: in-cluster
     namespace: argocd

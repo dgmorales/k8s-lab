@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gha-runner-controller
+  namespace: argocd
+  labels:
+    app-type: cluster-addon
+spec:
+  project: default
+  sources:
+    - chart: actions-runner-controller
+      repoURL: https://actions-runner-controller.github.io/actions-runner-controller
+      targetRevision: v0.23.7
+      helm:
+        releaseName: actions-runner-controller
+    - repoURL: https://github.com/dgmorales/k8s-lab.git
+      targetRevision: HEAD
+      path: addons/manifests/github-arc
+  destination:
+    name: in-cluster
+    namespace: actions-runner-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
