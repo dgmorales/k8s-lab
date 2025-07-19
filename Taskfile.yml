@@ -10,10 +10,25 @@ vars:
 
 tasks:
   setup-local-tools:
+    desc: Install/update local tools used by the tasks, on $HOME/bin by default. Run "task --summary setup-local-tools" for details.
+    summary: |
+      Install/update local tools used by the tasks, on $HOME/bin by default.
+
+      You can pass the bin path as argument to override it: task setup-local-tools --bin /path/to/bindir.
+      The rest of the tasks will assume the directory is on your $PATH, you have to make sure of that.
+    vars:
+      clusterctl_version: v1.10.3
+      argocd_version: v2.14.9
+      cilium_version: v0.18.5
+      bindir: '{{ .CLI_ARGS | default (expandenv "$HOME/bin") }}'
+    prompt: This will download and install tools binaries in {{ .bindir }}. Run "task --summary setup-local-tools" for details. Continue?
     cmds:
-      - echo install/update clusterctl
-      - echo install/update argocd cli
-      - echo install/update cilium cli?
+      - curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/{{ .clusterctl_version }}/clusterctl-{{ OS }}-{{ ARCH }} -o {{ .bindir }}/clusterctl
+      - chmod +x {{ .bindir }}/clusterctl
+      - curl -L https://github.com/argoproj/argo-cd/releases/download/{{ .argocd_version }}/argocd-{{ OS }}-{{ ARCH }} -o {{ .bindir }}/argocd
+      - chmod +x {{ .bindir }}/argocd
+      - curl -L https://github.com/cilium/cilium-cli/releases/download/{{ .cilium_version }}/cilium-{{ OS }}-{{ ARCH }}.tar.gz | tar -xzf - -C {{ .bindir }}
+      - chmod +x {{ .bindir }}/cilium
 
   setup-lab:
     cmds:

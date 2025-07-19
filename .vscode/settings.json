@@ -3,6 +3,7 @@
 		"argocd",
 		"cilium",
 		"clusterapi",
-		"addons"
+		"addons",
+		"apps"
 	]
 }
