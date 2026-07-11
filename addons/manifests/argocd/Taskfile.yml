@@ -9,11 +9,21 @@ tasks:
       - cmd: kubectl create ns argocd
         ignore_error: true
       - kubectl apply -k .
+      - task: wait-for-secret
       - task: get-password
 
   port-forward:
     cmds:
       - kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+  wait-for-secret:
+    cmds:
+      - cmd: |
+          echo "Waiting for argocd-initial-admin-secret to be created..."
+          until kubectl get secret argocd-initial-admin-secret -n argocd >/dev/null 2>&1; do
+            sleep 2
+          done
+        silent: true
 
   get-password:
     vars:

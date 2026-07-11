@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: argocd
 
 resources:
-- https://raw.githubusercontent.com/argoproj/argo-cd/refs/tags/v2.14.6/manifests/install.yaml
+- https://raw.githubusercontent.com/argoproj/argo-cd/refs/tags/v3.5.0-rc2/manifests/install.yaml
 
 patches:
 - path: ./argocd-cm.yaml
