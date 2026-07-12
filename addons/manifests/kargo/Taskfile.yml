@@ -1,0 +1,41 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  init:
+    desc: Create the kargo-admin secret required by the Kargo addon (addons/argocd-apps/kargo.yaml).
+    summary: |
+      The Kargo helm chart requires a bcrypt password hash and a token signing
+      key for its admin account. Rather than committing those to git, this
+      creates the "kargo" namespace and a "kargo-admin" Secret out of band,
+      which the Application references via api.secret.name.
+
+      The chart itself only ever sees the hash, so the plaintext password is
+      also stashed in the same Secret (under "password", a key the chart
+      ignores) so it can be retrieved later with "task kargo:get-password".
+    cmds:
+      - cmd: |
+          KARGO_PASSWORD=$(openssl rand -base64 24 | tr -d "=+/" | cut -c1-20)
+          PASSWORD_HASH=$(htpasswd -nbBC 10 "" "$KARGO_PASSWORD" | cut -d: -f2)
+          SIGNING_KEY=$(openssl rand -base64 29 | tr -d "=+/")
+          kubectl --context kind-{{.cluster_mgmt}} create namespace kargo || true
+          kubectl --context kind-{{.cluster_mgmt}} create secret generic kargo-admin -n kargo \
+            --from-literal=ADMIN_ACCOUNT_PASSWORD_HASH="$PASSWORD_HASH" \
+            --from-literal=ADMIN_ACCOUNT_TOKEN_SIGNING_KEY="$SIGNING_KEY" \
+            --from-literal=password="$KARGO_PASSWORD"
+          echo -e "\n===> Kargo admin password is $KARGO_PASSWORD\n"
+
+  get-password:
+    desc: Print the Kargo admin password (set by "task kargo:init").
+    vars:
+      KARGO_PASS:
+        sh: kubectl --context kind-{{.cluster_mgmt}} get secret kargo-admin -n kargo -o jsonpath='{.data.password}' | base64 -d
+    cmds:
+      - cmd: echo -e "\n===> Kargo admin password is {{.KARGO_PASS}}\n"
+        silent: true
+
+  port-forward:
+    desc: Port-forward the Kargo API/UI server to localhost:8081 (HTTPS, self-signed cert).
+    cmds:
+      - kubectl --context kind-{{.cluster_mgmt}} port-forward svc/kargo-api -n kargo 8081:443

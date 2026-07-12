@@ -57,6 +57,7 @@ tasks:
     cmds:
       - kubectl --context kind-{{ .cluster_mgmt }} create namespace actions-runner-system || true
       - kubectl --context kind-{{ .cluster_mgmt }} create secret generic controller-manager -n actions-runner-system --from-literal=github_token=${ARC_TOKEN}
+      - task: kargo:init
       - kubectl --context kind-{{ .cluster_mgmt }} apply -f addons/argocd-apps/addons-manager.yaml
 
   mgmt-create:
@@ -80,6 +81,11 @@ includes:
   argocd:
     taskfile: ./addons/manifests/argocd
     dir: ./addons/manifests/argocd
+  kargo:
+    taskfile: ./addons/manifests/kargo
+    dir: ./addons/manifests/kargo
+    vars:
+      cluster_mgmt: '{{.cluster_mgmt}}'
   cilium:
     taskfile: ./setup/Taskfile.cilium.yml
     dir: ./setup/cilium
