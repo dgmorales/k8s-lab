@@ -2,6 +2,9 @@
 
 version: '3'
 
+vars:
+  namespace: cluster-api
+
 tasks:
 
   init:
@@ -12,9 +15,54 @@ tasks:
 
   create-clusters:
     cmds:
-    - kubectl --context kind-{{ .cluster_mgmt }} create ns {{ .cluster_dev }} || true
-    - kubectl --context kind-{{ .cluster_mgmt }} create ns {{ .cluster_prod0 }} || true
-    - kubectl --context kind-{{ .cluster_mgmt }} create ns {{ .cluster_prod1 }} || true
-    - echo clusterctl get kubeconfig {{ .cluster_dev }} > kubeconfigs/{{ .cluster_dev }}.kubeconfig
-    - echo clusterctl get kubeconfig {{ .cluster_prod0 }} > kubeconfigs/{{ .cluster_prod0 }}.kubeconfig
-    - echo clusterctl get kubeconfig {{ .cluster_prod1 }} > kubeconfigs/{{ .cluster_prod1 }}.kubeconfig
+    - kubectl --context kind-{{ .cluster_mgmt }} create ns {{ .namespace }} || true
+    - kubectl --context kind-{{ .cluster_mgmt }} apply -n {{ .namespace }} -f clusterclass-quick-start.yaml
+    - kubectl --context kind-{{ .cluster_mgmt }} apply -n {{ .namespace }} -f {{ .cluster_dev }}.yaml
+    - kubectl --context kind-{{ .cluster_mgmt }} apply -n {{ .namespace }} -f {{ .cluster_prod0 }}.yaml
+    - kubectl --context kind-{{ .cluster_mgmt }} apply -n {{ .namespace }} -f {{ .cluster_prod1 }}.yaml
+    - task: wait-clusters
+    - task: get-kubeconfigs
+    - task: register-argocd-clusters
+
+  wait-clusters:
+    cmds:
+    - kubectl --context kind-{{ .cluster_mgmt }} wait -n {{ .namespace }} --for=condition=ControlPlaneInitialized --timeout=10m cluster/{{ .cluster_dev }}
+    - kubectl --context kind-{{ .cluster_mgmt }} wait -n {{ .namespace }} --for=condition=ControlPlaneInitialized --timeout=10m cluster/{{ .cluster_prod0 }}
+    - kubectl --context kind-{{ .cluster_mgmt }} wait -n {{ .namespace }} --for=condition=ControlPlaneInitialized --timeout=10m cluster/{{ .cluster_prod1 }}
+
+  get-kubeconfigs:
+    cmds:
+    - clusterctl --kubeconfig-context kind-{{ .cluster_mgmt }} get kubeconfig {{ .cluster_dev }} --namespace {{ .namespace }} > kubeconfigs/{{ .cluster_dev }}.kubeconfig
+    - clusterctl --kubeconfig-context kind-{{ .cluster_mgmt }} get kubeconfig {{ .cluster_prod0 }} --namespace {{ .namespace }} > kubeconfigs/{{ .cluster_prod0 }}.kubeconfig
+    - clusterctl --kubeconfig-context kind-{{ .cluster_mgmt }} get kubeconfig {{ .cluster_prod1 }} --namespace {{ .namespace }} > kubeconfigs/{{ .cluster_prod1 }}.kubeconfig
+
+  register-argocd-clusters:
+    vars:
+      argocd_image: quay.io/argoproj/argocd:v3.5.0-rc2
+    # Registers each workload cluster with the ArgoCD running on the mgmt cluster, so
+    # ApplicationSets using the `clusters` generator (e.g. apps/argocd-apps/guestbook.yaml)
+    # pick them up automatically.
+    #
+    # The CAPD workload clusters' API servers are only reachable via internal docker-network
+    # addresses (Docker Desktop isolates the host from the "kind" bridge network, so the
+    # argocd CLI can't reach them directly from the host). So this runs the registration from
+    # a throwaway container attached to the "kind" docker network instead, using an internal
+    # kubeconfig for the mgmt cluster (kind ... --internal, i.e. its docker DNS name) rather
+    # than the host-published port.
+    cmds:
+    - cmd: |
+        set -e
+        kind get kubeconfig --name {{ .cluster_mgmt }} --internal > kubeconfigs/{{ .cluster_mgmt }}-internal.kubeconfig
+        kubectl --kubeconfig kubeconfigs/{{ .cluster_mgmt }}-internal.kubeconfig config set-context --current --namespace=argocd
+        docker run --rm --network kind \
+          -v "$(pwd)/kubeconfigs:/kubeconfigs:ro" \
+          -e KUBECONFIG=/kubeconfigs/{{ .cluster_mgmt }}-internal.kubeconfig \
+          --entrypoint sh \
+          {{ .argocd_image }} \
+          -c '
+            set -ex
+            argocd login --core
+            argocd cluster add {{ .cluster_dev }}-admin@{{ .cluster_dev }} --kubeconfig /kubeconfigs/{{ .cluster_dev }}.kubeconfig --name {{ .cluster_dev }} --yes
+            argocd cluster add {{ .cluster_prod0 }}-admin@{{ .cluster_prod0 }} --kubeconfig /kubeconfigs/{{ .cluster_prod0 }}.kubeconfig --name {{ .cluster_prod0 }} --yes
+            argocd cluster add {{ .cluster_prod1 }}-admin@{{ .cluster_prod1 }} --kubeconfig /kubeconfigs/{{ .cluster_prod1 }}.kubeconfig --name {{ .cluster_prod1 }} --yes
+          '

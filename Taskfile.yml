@@ -18,7 +18,7 @@ tasks:
       The rest of the tasks will assume the directory is on your $PATH, you have to make sure of that.
     vars:
       clusterctl_version: v1.10.3
-      argocd_version: v2.14.9
+      argocd_version: v3.5.0-rc2
       cilium_version: v0.18.5
       bindir: '{{ .CLI_ARGS | default (expandenv "$HOME/bin") }}'
     prompt: This will download and install tools binaries in {{ .bindir }}. Run "task --summary setup-local-tools" for details. Continue?
@@ -38,7 +38,7 @@ tasks:
       - task: argocd:install
       - task: addons-init
       - task: clusterapi:init
-     # - task: clusterapi:create-clusters
+      - task: clusterapi:create-clusters
 
   addons-init:
     # Install the addons-manager app-of-apps in ArgoCD. From there on, it will manage itself.
@@ -86,6 +86,11 @@ includes:
   clusterapi:
     taskfile: ./setup/clusterapi
     dir: ./setup/clusterapi
+    vars:
+      cluster_mgmt: '{{.cluster_mgmt}}'
+      cluster_dev: '{{.cluster_dev}}'
+      cluster_prod0: '{{.cluster_prod0}}'
+      cluster_prod1: '{{.cluster_prod1}}'
   demo-cilium:
     taskfile: ./demos/cilium/Taskfile.yml
     dir: ./demos/cilium

@@ -8,7 +8,7 @@ tasks:
       - kubectl config set-context kind-{{.cluster_mgmt}}
       - cmd: kubectl create ns argocd
         ignore_error: true
-      - kubectl apply -k .
+      - kubectl apply -k . --server-side --force-conflicts
       - task: wait-for-secret
       - task: get-password
 
