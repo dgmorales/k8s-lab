@@ -9,11 +9,11 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-  - clusters: {}
-      # selector:
-      #   matchLabels:
-      #     # only add app to worker clusters
-      #     role: worker
+  - clusters:
+      selector:
+        matchLabels:
+          # only add app to worker clusters, not the mgmt (in-cluster) one
+          type: worker
   template:
     metadata:
       name: '{{.name}}-guestbook'
