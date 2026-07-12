@@ -14,3 +14,6 @@ spec:
     path: addons/manifests/argocd
     repoURL: https://github.com/dgmorales/k8s-lab.git
     targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
