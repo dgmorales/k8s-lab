@@ -9,12 +9,14 @@ vars:
 tasks:
 
   init:
+    desc: Run clusterctl init for the Docker (CAPD) infrastructure provider.
     env:
       CLUSTER_TOPOLOGY: true
     cmds:
       - clusterctl init --infrastructure docker --wait-providers
 
   create-clusters:
+    desc: Apply the ClusterClass and the three workload Cluster manifests, wait for them, fetch kubeconfigs, and register them with ArgoCD.
     cmds:
     - kubectl --context kind-{{ .cluster_mgmt }} create ns {{ .namespace }} || true
     - kubectl --context kind-{{ .cluster_mgmt }} apply -n {{ .namespace }} -f clusterclass-quick-start.yaml
@@ -28,6 +30,7 @@ tasks:
     - task: register-argocd-clusters
 
   render-cilium-manifest:
+    desc: Regenerate cilium-cni-configmap.yaml from the Cilium Helm chart.
     # Regenerates cilium-cni-configmap.yaml from the cilium/cilium helm chart. Run this after
     # bumping cilium_chart_version. ipam.operator.clusterPoolIPv4PodCIDRList must match the
     # pods.cidrBlocks used by the Cluster manifests (lab-dev-0.yaml etc). kubeProxyReplacement
@@ -60,12 +63,14 @@ tasks:
     - kubectl --context kind-{{ .cluster_mgmt }} wait -n {{ .namespace }} --for=condition=ControlPlaneInitialized --timeout=10m cluster/{{ .cluster_prod1 }}
 
   get-kubeconfigs:
+    desc: Fetch kubeconfigs for the workload clusters via clusterctl.
     cmds:
     - clusterctl --kubeconfig-context kind-{{ .cluster_mgmt }} get kubeconfig {{ .cluster_dev }} --namespace {{ .namespace }} > kubeconfigs/{{ .cluster_dev }}.kubeconfig
     - clusterctl --kubeconfig-context kind-{{ .cluster_mgmt }} get kubeconfig {{ .cluster_prod0 }} --namespace {{ .namespace }} > kubeconfigs/{{ .cluster_prod0 }}.kubeconfig
     - clusterctl --kubeconfig-context kind-{{ .cluster_mgmt }} get kubeconfig {{ .cluster_prod1 }} --namespace {{ .namespace }} > kubeconfigs/{{ .cluster_prod1 }}.kubeconfig
 
   local-kubeconfig:
+    desc: Build host-usable kubeconfigs for the workload clusters using their load balancer's published port.
     # Builds host-usable copies of each workload cluster's kubeconfig, for inspecting them
     # directly (kubectl, k9s, etc) from the host. The ones from get-kubeconfigs use internal
     # docker-network addresses (see register-argocd-clusters for why those aren't reachable

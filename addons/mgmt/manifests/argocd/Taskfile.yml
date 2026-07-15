@@ -4,6 +4,7 @@ version: '3'
 
 tasks:
   install:
+    desc: Install ArgoCD into the mgmt cluster via kustomize and print the initial admin password.
     cmds:
       - kubectl config set-context kind-{{.cluster_mgmt}}
       - cmd: kubectl create ns argocd
@@ -13,6 +14,7 @@ tasks:
       - task: get-password
 
   port-forward:
+    desc: Port-forward the ArgoCD server UI to localhost:8080.
     cmds:
       - kubectl port-forward svc/argocd-server -n argocd 8080:443
 
@@ -26,6 +28,7 @@ tasks:
         silent: true
 
   get-password:
+    desc: Print the ArgoCD initial admin password.
     vars:
       ARGO_PASS:
         sh: kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d

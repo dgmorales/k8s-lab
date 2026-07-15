@@ -31,6 +31,7 @@ tasks:
       - chmod +x {{ .bindir }}/cilium
 
   setup-lab:
+    desc: Full bring-up of the lab (mgmt cluster, ArgoCD, addons/apps app-of-apps, ClusterAPI, workload clusters).
     cmds:
       - task: mgmt-create
       # - task: cilium:install
@@ -41,6 +42,7 @@ tasks:
       - task: clusterapi:create-clusters
 
   addons-init:
+    desc: Install the addons-manager and apps-manager app-of-apps roots into ArgoCD (requires ARC_TOKEN).
     # Install the addons-manager and apps-manager app-of-apps in ArgoCD. From there on, they manage themselves.
     # One of the addons installed by the manager is the actions-runner-controller. It
     # requires a secret (controller-manager) so it can register runners for this repo
@@ -62,11 +64,13 @@ tasks:
       - kubectl --context kind-{{ .cluster_mgmt }} apply -f apps/apps-manager.yaml
 
   mgmt-create:
+    desc: Create the mgmt kind cluster from setup/kind-config.yaml.
     dir: ./setup
     cmds:
       - kind create cluster --name {{.cluster_mgmt}} --config kind-config.yaml
 
   destroy-clusters:
+    desc: Delete all four kind clusters (mgmt, dev-0, prod-0, prod-1).
     cmds:
       - kind delete cluster --name {{.cluster_mgmt}}
       - kind delete cluster --name {{.cluster_dev}}
@@ -74,6 +78,7 @@ tasks:
       - kind delete cluster --name {{.cluster_prod1}}
 
   port-forward:
+    desc: Port-forward both the ArgoCD and Cilium (Hubble) UIs.
     deps:
       - argocd:port-forward
       - cilium:port-forward

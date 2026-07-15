@@ -4,13 +4,16 @@ version: '3'
 
 tasks:
   install:
+    desc: Install Cilium using the vendored chart in setup/cilium.
     cmds:
       - cilium install --chart-directory ./install/kubernetes/cilium
 
   install-ui:
+    desc: Enable the Hubble UI.
     cmds:
       - cilium hubble enable --ui
 
   port-forward:
+    desc: Port-forward the Hubble UI to localhost:8081.
     cmds:
       - kubectl port-forward svc/hubble-ui -n kube-system 8081:80

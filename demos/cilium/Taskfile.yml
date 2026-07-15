@@ -4,14 +4,17 @@ version: '3'
 
 tasks:
   test-conn:
+    desc: Run the Cilium connectivity test suite.
     cmds:
       - cilium connectivity test
 
   deathstar-up:
+    desc: Deploy the Star Wars demo app used for the Cilium network-policy demos.
     cmds:
       - kubectl create -f https://raw.githubusercontent.com/cilium/cilium/HEAD/examples/minikube/http-sw-app.yaml
 
   deathstar-down:
+    desc: Tear down the Star Wars demo app and its network policy.
     cmds:
       - kubectl delete -f https://raw.githubusercontent.com/cilium/cilium/HEAD/examples/minikube/http-sw-app.yaml
       - kubectl delete cnp rule1
