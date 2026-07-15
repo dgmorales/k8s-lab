@@ -1,0 +1,23 @@
+# this is an AppSet that generates an "app of apps" on each cluster to manage cluster addons
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: addons-manager
+  namespace: argocd
+  labels:
+    app-type: cluster-addon
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/dgmorales/k8s-lab.git
+      targetRevision: HEAD
+      path: addons/mgmt/apps
+    - repoURL: https://github.com/dgmorales/k8s-lab.git
+      targetRevision: HEAD
+      path: addons/all/appsets
+    - repoURL: https://github.com/dgmorales/k8s-lab.git
+      targetRevision: HEAD
+      path: addons/workers
+  destination:
+    name: in-cluster
+    namespace: argocd

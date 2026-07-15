@@ -4,7 +4,7 @@ version: '3'
 
 tasks:
   init:
-    desc: Create the kargo-admin secret required by the Kargo addon (addons/argocd-apps/kargo.yaml).
+    desc: Create the kargo-admin secret required by the Kargo addon (addons/mgmt/apps/kargo.yaml).
     summary: |
       The Kargo helm chart requires a bcrypt password hash and a token signing
       key for its admin account. Rather than committing those to git, this

@@ -15,7 +15,7 @@ spec:
         releaseName: actions-runner-controller
     - repoURL: https://github.com/dgmorales/k8s-lab.git
       targetRevision: HEAD
-      path: addons/manifests/github-arc
+      path: addons/mgmt/manifests/github-arc
   destination:
     name: in-cluster
     namespace: actions-runner-system
