@@ -41,7 +41,7 @@ tasks:
       - task: clusterapi:create-clusters
 
   addons-init:
-    # Install the addons-manager app-of-apps in ArgoCD. From there on, it will manage itself.
+    # Install the addons-manager and apps-manager app-of-apps in ArgoCD. From there on, they manage themselves.
     # One of the addons installed by the manager is the actions-runner-controller. It
     # requires a secret (controller-manager) so it can register runners for this repo
     # (or any other repo).
@@ -58,7 +58,8 @@ tasks:
       - kubectl --context kind-{{ .cluster_mgmt }} create namespace actions-runner-system || true
       - kubectl --context kind-{{ .cluster_mgmt }} create secret generic controller-manager -n actions-runner-system --from-literal=github_token=${ARC_TOKEN}
       - task: kargo:init
-      - kubectl --context kind-{{ .cluster_mgmt }} apply -f addons/argocd-apps/addons-manager.yaml
+      - kubectl --context kind-{{ .cluster_mgmt }} apply -f addons/addons-manager.yaml
+      - kubectl --context kind-{{ .cluster_mgmt }} apply -f apps/apps-manager.yaml
 
   mgmt-create:
     dir: ./setup
@@ -79,11 +80,11 @@ tasks:
 
 includes:
   argocd:
-    taskfile: ./addons/manifests/argocd
-    dir: ./addons/manifests/argocd
+    taskfile: ./addons/mgmt/manifests/argocd
+    dir: ./addons/mgmt/manifests/argocd
   kargo:
-    taskfile: ./addons/manifests/kargo
-    dir: ./addons/manifests/kargo
+    taskfile: ./addons/mgmt/manifests/kargo
+    dir: ./addons/mgmt/manifests/kargo
     vars:
       cluster_mgmt: '{{.cluster_mgmt}}'
   cilium:

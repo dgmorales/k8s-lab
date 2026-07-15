@@ -89,7 +89,7 @@ tasks:
     vars:
       argocd_image: quay.io/argoproj/argocd:v3.5.0-rc2
     # Registers each workload cluster with the ArgoCD running on the mgmt cluster, so
-    # ApplicationSets using the `clusters` generator (e.g. apps/argocd-apps/guestbook.yaml)
+    # ApplicationSets using the `clusters` generator (e.g. apps/appsets/guestbook.yaml)
     # pick them up automatically.
     #
     # The CAPD workload clusters' API servers are only reachable via internal docker-network

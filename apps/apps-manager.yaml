@@ -1,0 +1,17 @@
+# this is an app of apps that manages workload applications
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apps-manager
+  namespace: argocd
+  labels:
+    app-type: application
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/dgmorales/k8s-lab.git
+    targetRevision: HEAD
+    path: apps/appsets
+  destination:
+    name: in-cluster
+    namespace: argocd
